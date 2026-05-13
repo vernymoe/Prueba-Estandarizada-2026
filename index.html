@@ -258,10 +258,10 @@
 
   <script>
     const materias = [
-      { nombre: "Matemática", preguntas: 40 },
-      { nombre: "Ciencias", preguntas: 40 },
-      { nombre: "Estudios Sociales", preguntas: 40 },
-      { nombre: "Educación Cívica", preguntas: 40 }
+      { nombre: "Matemática", preguntas: 60 },
+      { nombre: "Ciencias", preguntas: 60 },
+      { nombre: "Estudios Sociales", preguntas: 60 },
+      { nombre: "Educación Cívica", preguntas: 60 }
     ];
 
     function limitar(valor, min, max) {
@@ -392,7 +392,7 @@
       const tbody = document.getElementById("tablaEspanol");
       tbody.innerHTML = "";
 
-      const preguntas = parseInt(leerNumero("preguntasEspanol", 40)) || 40;
+      const preguntas = parseInt(leerNumero("preguntasEspanol", 60)) || 60;
       const redaccionEstimada = limitar(leerNumero("redaccionEstimada", 80), 0, 100);
       const comprensionEstimada = limitar(leerNumero("comprensionEstimada", 80), 0, 100);
 
