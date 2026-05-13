@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Proyección de notas - Pruebas Nacionales 2026</title>
+  <style>
+    :root {
+      --azul: #1f4e79;
+      --azul-claro: #eaf2f8;
+      --verde: #1f7a4d;
+      --rojo: #b03a2e;
+      --gris: #f4f6f7;
+      --texto: #263238;
+      --borde: #d5d8dc;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #eef5fb, #ffffff);
+      color: var(--texto);
+    }
+
+    header {
+      background: var(--azul);
+      color: white;
+      padding: 24px 18px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 8px 0;
+      font-size: 1.7rem;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 0.98rem;
+    }
+
+    main {
+      width: min(1150px, 96%);
+      margin: 24px auto;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid var(--borde);
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #bfc9ca;
+      font-size: 1rem;
+    }
+
+    button {
+      background: var(--azul);
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      margin-top: 14px;
+    }
+
+    button:hover { background: #173c5c; }
+
+    .nota-grande {
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: var(--azul);
+    }
+
+    .ok { color: var(--verde); font-weight: bold; }
+    .alerta { color: var(--rojo); font-weight: bold; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      overflow-x: auto;
+    }
+
+    th, td {
+      border: 1px solid var(--borde);
+      padding: 10px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    th {
+      background: var(--azul);
+      color: white;
+    }
+
+    tr:nth-child(even) { background: var(--gris); }
+
+    .explicacion {
+      background: var(--azul-claro);
+      border-left: 5px solid var(--azul);
+      padding: 14px;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    .small {
+      font-size: 0.9rem;
+      color: #566573;
+    }
+
+    .materia-input {
+      max-width: 90px;
+      margin: auto;
+    }
+
+    .footer {
+      text-align: center;
+      color: #566573;
+      font-size: 0.88rem;
+      margin: 24px 0;
+    }
+
+    @media print {
+      button, .no-print { display: none; }
+      body { background: white; }
+      .card { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Proyección de notas - Pruebas Nacionales Estandarizadas 2026</h1>
+    <p>Herramienta para estimar la nota mínima requerida y la cantidad aproximada de aciertos necesarios.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Datos generales</h2>
+      <div class="grid">
+        <div>
+          <label for="presentacion">Nota de presentación</label>
+          <input type="number" id="presentacion" min="0" max="100" step="0.01" value="80" />
+        </div>
+        <div>
+          <label for="meta">Nota final mínima deseada</label>
+          <input type="number" id="meta" min="0" max="100" step="0.01" value="70" />
+        </div>
+        <div>
+          <label for="pesoPresentacion">Peso nota de presentación (%)</label>
+          <input type="number" id="pesoPresentacion" min="0" max="100" step="1" value="60" />
+        </div>
+        <div>
+          <label for="pesoPrueba">Peso prueba nacional (%)</label>
+          <input type="number" id="pesoPrueba" min="0" max="100" step="1" value="40" />
+        </div>
+      </div>
+      <button onclick="calcularTodo()">Calcular proyección</button>
+      <button onclick="window.print()" class="no-print">Imprimir / guardar PDF</button>
+    </section>
+
+    <section class="card">
+      <h2>Resultado general</h2>
+      <div id="resultadoGeneral" class="explicacion"></div>
+    </section>
+
+    <section class="card">
+      <h2>Materias con prueba de selección única</h2>
+      <p class="small">Puede cambiar la cantidad de preguntas si el MEP publica una cantidad diferente para cada materia.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Materia</th>
+            <th>Cantidad de preguntas</th>
+            <th>Nota mínima requerida en la prueba</th>
+            <th>Aciertos mínimos</th>
+            <th>Porcentaje de aciertos</th>
+            <th>Proyección</th>
+          </tr>
+        </thead>
+        <tbody id="tablaMaterias"></tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Español: comprensión lectora + redacción</h2>
+      <div class="explicacion">
+        Para Español se usa una ponderación interna de la prueba: <strong>50% comprensión lectora</strong> y <strong>50% producción escrita/redacción</strong>. 
+        La herramienta permite proyectar cuánto necesita el estudiante en comprensión lectora según una nota estimada de redacción, o cuánto necesitaría en redacción según una nota estimada de comprensión lectora.
+      </div>
+
+      <div class="grid" style="margin-top:16px;">
+        <div>
+          <label for="preguntasEspanol">Preguntas de comprensión lectora</label>
+          <input type="number" id="preguntasEspanol" min="1" step="1" value="40" />
+        </div>
+        <div>
+          <label for="redaccionEstimada">Nota estimada en redacción</label>
+          <input type="number" id="redaccionEstimada" min="0" max="100" step="0.01" value="80" />
+        </div>
+        <div>
+          <label for="comprensionEstimada">Nota estimada en comprensión lectora</label>
+          <input type="number" id="comprensionEstimada" min="0" max="100" step="0.01" value="80" />
+        </div>
+      </div>
+
+      <button onclick="calcularTodo()">Recalcular Español</button>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Escenario</th>
+            <th>Dato estimado</th>
+            <th>Resultado necesario</th>
+            <th>Aciertos aproximados</th>
+            <th>Interpretación</th>
+          </tr>
+        </thead>
+        <tbody id="tablaEspanol"></tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Fórmulas utilizadas</h2>
+      <div class="explicacion">
+        <p><strong>Nota final:</strong> (Nota de presentación × 0.60) + (Nota de prueba nacional × 0.40)</p>
+        <p><strong>Nota de prueba requerida:</strong> (Meta final − aporte de presentación) ÷ peso de la prueba</p>
+        <p><strong>Aciertos requeridos:</strong> redondeo hacia arriba de [(nota requerida ÷ 100) × cantidad de preguntas]</p>
+        <p><strong>Español:</strong> Nota de Español = (Comprensión lectora × 0.50) + (Redacción × 0.50)</p>
+      </div>
+    </section>
+
+    <p class="footer">Liceo San Rafael de Alajuela. Archivo editable para uso educativo. Revise y actualice los valores oficiales cuando el MEP publique la cantidad definitiva de ítems por prueba.</p>
+  </main>
+
+  <script>
+    const materias = [
+      { nombre: "Matemática", preguntas: 40 },
+      { nombre: "Ciencias", preguntas: 40 },
+      { nombre: "Estudios Sociales", preguntas: 40 },
+      { nombre: "Educación Cívica", preguntas: 40 }
+    ];
+
+    function limitar(valor, min, max) {
+      return Math.min(Math.max(valor, min), max);
+    }
+
+    function leerNumero(id, valorPorDefecto = 0) {
+      const n = parseFloat(document.getElementById(id).value);
+      return isNaN(n) ? valorPorDefecto : n;
+    }
+
+    function calcularNotaPruebaRequerida() {
+      const presentacion = leerNumero("presentacion");
+      const meta = leerNumero("meta", 70);
+      const pesoPresentacion = leerNumero("pesoPresentacion", 60) / 100;
+      const pesoPrueba = leerNumero("pesoPrueba", 40) / 100;
+
+      if (pesoPrueba <= 0) return null;
+
+      const aportePresentacion = presentacion * pesoPresentacion;
+      const requerida = (meta - aportePresentacion) / pesoPrueba;
+
+      return {
+        presentacion,
+        meta,
+        pesoPresentacion,
+        pesoPrueba,
+        aportePresentacion,
+        requerida
+      };
+    }
+
+    function aciertosNecesarios(notaRequerida, preguntas) {
+      if (notaRequerida <= 0) return 0;
+      if (notaRequerida > 100) return preguntas + 1;
+      return Math.ceil((notaRequerida / 100) * preguntas);
+    }
+
+    function notaPorAciertos(aciertos, preguntas) {
+      if (preguntas <= 0) return 0;
+      return (aciertos / preguntas) * 100;
+    }
+
+    function calcularTodo() {
+      const datos = calcularNotaPruebaRequerida();
+      const resultadoGeneral = document.getElementById("resultadoGeneral");
+
+      if (!datos) {
+        resultadoGeneral.innerHTML = '<span class="alerta">El peso de la prueba nacional debe ser mayor que cero.</span>';
+        return;
+      }
+
+      let mensaje = "";
+      if (datos.requerida <= 0) {
+        mensaje = `Con una nota de presentación de <strong>${datos.presentacion.toFixed(2)}</strong>, el aporte ya alcanza la meta establecida. Aun así, el estudiante debe realizar las pruebas según la normativa correspondiente.`;
+      } else if (datos.requerida > 100) {
+        mensaje = `Con una nota de presentación de <strong>${datos.presentacion.toFixed(2)}</strong>, se requeriría una nota de prueba de <span class="alerta">${datos.requerida.toFixed(2)}</span>, lo cual supera 100. Por tanto, no sería posible alcanzar la meta de ${datos.meta} solo con la prueba.`;
+      } else {
+        mensaje = `Con una nota de presentación de <strong>${datos.presentacion.toFixed(2)}</strong>, el estudiante necesita obtener al menos <span class="nota-grande">${datos.requerida.toFixed(2)}</span> en cada prueba nacional para alcanzar una nota final mínima de <strong>${datos.meta}</strong>.`;
+      }
+
+      resultadoGeneral.innerHTML = `
+        ${mensaje}
+        <br><br>
+        Aporte de la nota de presentación: <strong>${datos.aportePresentacion.toFixed(2)}</strong> puntos sobre la nota final.
+      `;
+
+      calcularMaterias(datos.requerida);
+      calcularEspanol(datos.requerida);
+    }
+
+    function calcularMaterias(notaRequerida) {
+      const tbody = document.getElementById("tablaMaterias");
+
+      // Primero se leen los valores actuales ANTES de borrar/redibujar la tabla.
+      // Esto permite que los cambios en "Cantidad de preguntas" se usen realmente en la fórmula.
+      materias.forEach((materia, index) => {
+        const inputId = `preguntas_${index}`;
+        const existente = document.getElementById(inputId);
+        if (existente) {
+          const valorActual = parseInt(existente.value, 10);
+          if (!isNaN(valorActual) && valorActual > 0) {
+            materia.preguntas = valorActual;
+          }
+        }
+      });
+
+      tbody.innerHTML = "";
+
+      materias.forEach((materia, index) => {
+        const inputId = `preguntas_${index}`;
+        const preguntas = materia.preguntas;
+
+        const aciertos = aciertosNecesarios(notaRequerida, preguntas);
+        let proyeccion = "";
+        let porcentaje = "";
+        let aciertosTexto = "";
+
+        if (notaRequerida <= 0) {
+          aciertosTexto = "0";
+          porcentaje = "0%";
+          proyeccion = '<span class="ok">La presentación cubre la meta.</span>';
+        } else if (notaRequerida > 100) {
+          aciertosTexto = `Más de ${preguntas}`;
+          porcentaje = "Más de 100%";
+          proyeccion = '<span class="alerta">No alcanzable con esta presentación.</span>';
+        } else {
+          const notaReal = notaPorAciertos(aciertos, preguntas);
+          aciertosTexto = `${aciertos} de ${preguntas}`;
+          porcentaje = `${notaReal.toFixed(2)}%`;
+          proyeccion = `<span class="ok">Con ${aciertos} aciertos obtendría aprox. ${notaReal.toFixed(2)}.</span>`;
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${materia.nombre}</strong></td>
+          <td><input class="materia-input" type="number" min="1" step="1" id="${inputId}" value="${preguntas}" oninput="calcularTodo()"></td>
+          <td>${notaRequerida <= 0 ? "0.00" : notaRequerida.toFixed(2)}</td>
+          <td>${aciertosTexto}</td>
+          <td>${porcentaje}</td>
+          <td>${proyeccion}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function calcularEspanol(notaPruebaRequerida) {
+      const tbody = document.getElementById("tablaEspanol");
+      tbody.innerHTML = "";
+
+      const preguntas = parseInt(leerNumero("preguntasEspanol", 40)) || 40;
+      const redaccionEstimada = limitar(leerNumero("redaccionEstimada", 80), 0, 100);
+      const comprensionEstimada = limitar(leerNumero("comprensionEstimada", 80), 0, 100);
+
+      let filas = [];
+
+      if (notaPruebaRequerida <= 0) {
+        filas.push({
+          escenario: "Español",
+          dato: "La presentación cubre la meta",
+          resultado: "0.00",
+          aciertos: "0",
+          interpretacion: '<span class="ok">No requiere nota mínima para alcanzar la meta, aunque debe realizar la prueba.</span>'
+        });
+      } else if (notaPruebaRequerida > 100) {
+        filas.push({
+          escenario: "Español",
+          dato: "La nota requerida supera 100",
+          resultado: notaPruebaRequerida.toFixed(2),
+          aciertos: `Más de ${preguntas}`,
+          interpretacion: '<span class="alerta">No alcanzable con esta nota de presentación.</span>'
+        });
+      } else {
+        // Fórmula: notaEspañol = 0.5 * comprensión + 0.5 * redacción
+        // Comprensión necesaria = 2 * requerida - redacción estimada
+        const comprensionNecesaria = (2 * notaPruebaRequerida) - redaccionEstimada;
+        const redaccionNecesaria = (2 * notaPruebaRequerida) - comprensionEstimada;
+
+        let aciertosComp = "";
+        let interpretacionComp = "";
+
+        if (comprensionNecesaria <= 0) {
+          aciertosComp = "0";
+          interpretacionComp = '<span class="ok">Con esa redacción estimada, la comprensión lectora no tendría que aportar puntos adicionales para alcanzar la meta de prueba.</span>';
+        } else if (comprensionNecesaria > 100) {
+          aciertosComp = `Más de ${preguntas}`;
+          interpretacionComp = '<span class="alerta">Con esa redacción estimada, no alcanzaría aunque obtenga 100 en comprensión lectora.</span>';
+        } else {
+          const aciertos = aciertosNecesarios(comprensionNecesaria, preguntas);
+          const notaAprox = notaPorAciertos(aciertos, preguntas);
+          aciertosComp = `${aciertos} de ${preguntas}`;
+          interpretacionComp = `<span class="ok">Necesita aproximadamente ${aciertos} aciertos en comprensión lectora, equivalente a ${notaAprox.toFixed(2)}.</span>`;
+        }
+
+        let interpretacionRedaccion = "";
+        if (redaccionNecesaria <= 0) {
+          interpretacionRedaccion = '<span class="ok">Con esa comprensión estimada, la redacción no tendría que aportar puntos adicionales para alcanzar la meta de prueba.</span>';
+        } else if (redaccionNecesaria > 100) {
+          interpretacionRedaccion = '<span class="alerta">Con esa comprensión estimada, no alcanzaría aunque obtenga 100 en redacción.</span>';
+        } else {
+          interpretacionRedaccion = `<span class="ok">Necesita obtener al menos ${redaccionNecesaria.toFixed(2)} en la redacción.</span>`;
+        }
+
+        filas.push({
+          escenario: "Comprensión lectora necesaria",
+          dato: `Redacción estimada: ${redaccionEstimada.toFixed(2)}`,
+          resultado: comprensionNecesaria.toFixed(2),
+          aciertos: aciertosComp,
+          interpretacion: interpretacionComp
+        });
+
+        filas.push({
+          escenario: "Redacción necesaria",
+          dato: `Comprensión estimada: ${comprensionEstimada.toFixed(2)}`,
+          resultado: redaccionNecesaria.toFixed(2),
+          aciertos: "No aplica",
+          interpretacion: interpretacionRedaccion
+        });
+      }
+
+      filas.forEach(f => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${f.escenario}</strong></td>
+          <td>${f.dato}</td>
+          <td>${f.resultado}</td>
+          <td>${f.aciertos}</td>
+          <td>${f.interpretacion}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    calcularTodo();
+  </script>
+</body>
+</html>
